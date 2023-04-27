@@ -2,88 +2,93 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class WikipediaGame {
 
     ArrayList<String> listURL = new ArrayList<String>();
 
+    private String widthCurrent0;
     private String widthCurrent1;
     private String widthCurrent2;
-    private String widthCurrent3;
 
     private String path;
     private String inputURL = "https://en.wikipedia.org/wiki/Wikipedia:Wiki_Game";
-    private String outputURL = "https://en.wikipedia.org/wiki/E-text";
+    private String outputURL = "https://en.wikipedia.org/wiki/Intelligence";
     //    private String outputURL =  "/wiki/Hypertext";
     private String currentURL = "";
-    private int depth = 1;
+    private boolean foundLink = false;
+    private int depth = 0;
     //"/wiki/Hypertext"
     //private boolean foundLink = false;
-    private int width1 = 1;
-    private int width2 = 1;
-    private int width3 = 1;
+    private int width0 = 0;
+    private int width1 = 0;
+    private int width2 = 0;
 
     public static void main(String[] args) {
-        WikipediaGame wikipedia = new WikipediaGame();
-        if (wikipedia.wikipedia(wikipedia.inputURL, wikipedia.outputURL, wikipedia.depth)) {
-            System.out.println("found it");
-            System.out.println("deep: " + wikipedia.depth);
-            System.out.println("wide1: " + wikipedia.width1);
-            System.out.println("wide2: " + wikipedia.width2);
-            System.out.println("wide3: " + wikipedia.width3);
-            System.out.println("size: " + wikipedia.listURL.size());
+         WikipediaGame game = new WikipediaGame();
+    }
 
-            System.out.println("path:" + wikipedia.widthCurrent1 + " > " + wikipedia.widthCurrent2);
+    //wikipedia.wikipedia(inputURL,outputURL, depth);
+
+    public WikipediaGame(){
+        if (wikipedia(inputURL, outputURL, depth)){
+            System.out.println("found it");
+            System.out.println("deep: " + depth);
+            System.out.println("wide0: " + width0);
+            System.out.println("wide1: " + width1);
+            System.out.println("wide2: " + width2);
+            System.out.println("size: " + listURL.size());
+
+            System.out.println("path:" + widthCurrent0 + " > " + widthCurrent1);
 
         } else {
             System.out.println("could not find outputURL with this depth");
         }
 
-//        boolean found = wikipedia.wikipedia("https://en.wikipedia.org/wiki/Wikipedia:Wiki_Game", "/wiki/Hypertext",0);
+//        boolean found = wikipedia("https://en.wikipedia.org/wiki/Wikipedia:Wiki_Game", "/wiki/Hypertext",0);
 //        System.out.println(found);
     }
 
     public boolean wikipedia(String inputURL, String outputURL, int depth) {
 
-        ArrayList<String> pathURL = new ArrayList<String>();
+        System.out.println(inputURL + "  " + outputURL);
 
-        readHTML(inputURL);
-
-        if (listURL.contains(outputURL)) {
+        if (inputURL.equals(outputURL)) {
             System.out.println("found it");
-            //foundLink = true
+            System.out.println(depth);
+            foundLink = true;
             return true;
-        } else if (depth > 1) {
+        } else if (depth == 3) {
             return false;
         } else {
-
+            readHTML(inputURL);
+//            System.out.println(inputURL);
             for (int i = 0; i < listURL.size(); i++) {
 
-                inputURL = "https://en.wikipedia.org" + listURL.get(i);
+                currentURL = "https://en.wikipedia.org" + listURL.get(i);
 
-                readHTML(inputURL);
+                wikipedia(currentURL, outputURL, depth + 1);
 
-//              wikipedia(inputURL, outputURL, depth + 1);
-
+                if (foundLink == true){
+                    break;
+                }
 
                 //modify to add wiki later when searching link
 
-                if (inputURL.equals(outputURL)) { //if false then shifts over to the next branch
-
+                 //if false then shifts over to the next branch
 
                     //only save path of last url
-                    return true;
-
-
-                } else {
 
                     //System.out.println(currentURL);
 
-                    wikipedia(inputURL, outputURL, depth + 1);
+                    //set currenturl to something
 
-                    if(depth == 1){
+                    if(depth == 0){
                         //pathURL.add(currentURL);
+                        widthCurrent0 = currentURL;
+                        width0++;
+                    }
+                    else if(depth == 1){
                         widthCurrent1 = currentURL;
                         width1++;
                     }
@@ -91,18 +96,22 @@ public class WikipediaGame {
                         widthCurrent2 = currentURL;
                         width2++;
                     }
+                    //differentiate inputurl and currenturl
+                    //System.out.println(listURL);
+                    //wikipedia(inputURL, outputURL, depth + 1);
+
 
                     //path = pathURL.toString();
-
-                }
             }
-            return false;
+//            return false;
         }
+//        System.out.println("-------");
+        return false;
     }
 
     public void readHTML(String input) { //takes the page and takes all the links from it
 
-        currentURL = input;
+        listURL.clear();
 
         try {
 //                System.out.println("-");
@@ -115,41 +124,34 @@ public class WikipediaGame {
 
                 //System.out.println(line);
 
-                if (line.contains("href=\"/wiki/")) {
-                    int indexStart = line.indexOf("href=\"/wiki/", 0) + 6;
+                while(line.contains("href=\"/wiki/")) {
+                    int indexStart = line.indexOf("href", 0) + 6;
                     int indexEnd = line.indexOf("\"", indexStart);
-                    //System.out.println(line.substring(indexStart,indexEnd));
-                    //listURL.add(line.substring(indexStart,indexEnd));
 
-                    if (indexStart >= 0 && indexEnd >= 0) {
-                        if (line.substring(indexStart, indexEnd).contains("/wiki/Wikipedia:") || line.substring(indexStart, indexEnd).contains("/wiki/Help:") || line.substring(indexStart, indexEnd).contains("/wiki/File:") || line.substring(indexStart, indexEnd).contains("/wiki/Template:") || line.substring(indexStart, indexEnd).contains("/wiki/Special:") || line.substring(indexStart, indexEnd).contains("/wiki/Main_Page") || line.substring(indexStart, indexEnd).contains("/wiki/User:") || line.substring(indexStart, indexEnd).contains("/wiki/User_talk:") || line.substring(indexStart, indexEnd).contains("/wiki/Wikipedia_talk:")) {
-                            //nothing happens
-                        } else {
-                            listURL.add(line.substring(indexStart, indexEnd));
+                        if (indexStart >= 0 && indexEnd >= 0) {
+                            String lineCheck = line.substring(indexStart,indexEnd);
+                            if (lineCheck.contains("/wiki/Wikipedia:") || lineCheck.contains("/wiki/Help:") || lineCheck.contains("/wiki/File:") || lineCheck.contains("/wiki/Template:") || lineCheck.contains("/wiki/Special:") || lineCheck.contains("/wiki/Main_Page") || lineCheck.contains("/wiki/User:") || lineCheck.contains("/wiki/User_talk:") || lineCheck.contains("/wiki/Wikipedia_talk:") || lineCheck.contains("/wiki/Category_talk:") || lineCheck.contains("/wiki/Category:") || lineCheck.contains("/wiki/Talk:") || lineCheck.contains("/wiki/Portal:") || lineCheck.contains("/wiki/Template_talk:")) {
+                                //nothing happens
+                            } else if (lineCheck.startsWith("/wiki/")) {
+                                listURL.add(line.substring(indexStart, indexEnd));
 
 //                            if(line.substring(indexStart, indexEnd).contains(outputURL)){
 //                                System.out.println(line.substring(indexStart,indexEnd));
 
-                            //System.out.println(listURL);
+                               // System.out.println(listURL);
 
-                            //System.out.println(input + outputURL);
+                                //System.out.println(input + outputURL);
 
-                            if (input.equals(outputURL)) {
-                                break;
+                                if (input.equals(outputURL)) {
+                                    break;
+                                }
                             }
 
-                                //wikipedia(inputURL,outputURL,depth+1);
-//                                deep = 0;
-//                                wide = 0;
-                            //System.out.println(line.substring(indexStart, indexEnd));
-                            //System.out.println(htmlList);
-                            /*else{
-                                layer1.add(line.substring(indexStart, indexEnd));
-                            }*/
-//                            wide++;
                         }
-                    }
+                    line = line.substring(indexEnd);
                 }
+
+                //System.out.println(listURL);
             }
             reader.close();
         } catch (Exception ex) {
